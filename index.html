@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Honkai: Star Rail - Warp Simulator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        orbitron: ['Orbitron', 'sans-serif'],
+                        rajdhani: ['Rajdhani', 'sans-serif'],
+                    },
+                    colors: {
+                        hsrGold: '#f2c968',
+                        hsrGoldDark: '#c9962a',
+                        hsrPurple: '#6b21a8',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base page reset */
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #050508;
+            color: #ffffff;
+            user-select: none;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Enforce exact 16:9 aspect ratio container */
+        .frame-16-9 {
+            aspect-ratio: 16 / 9;
+            width: 100%;
+            max-width: 1280px;
+            max-height: 92vh;
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.9), 0 0 25px rgba(242, 201, 104, 0.25);
+            border: 2px solid rgba(242, 201, 104, 0.5);
+            background-color: #000000;
+        }
+
+        /* HSR Style Buttons */
+        .btn-hsr-gold {
+            background: linear-gradient(135deg, #fceabb 0%, #f8b500 50%, #c98818 100%);
+            color: #111;
+            font-weight: 800;
+            border: 2px solid #fff6d1;
+            box-shadow: 0 4px 15px rgba(248, 181, 0, 0.4);
+            transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .btn-hsr-gold:hover {
+            transform: translateY(-2px) scale(1.03);
+            filter: brightness(1.15);
+            box-shadow: 0 6px 25px rgba(248, 181, 0, 0.7);
+        }
+        .btn-hsr-gold:active {
+            transform: translateY(1px) scale(0.97);
+        }
+
+        .btn-hsr-dark {
+            background: rgba(15, 17, 26, 0.85);
+            border: 1px solid rgba(242, 201, 104, 0.5);
+            color: #f2c968;
+            backdrop-filter: blur(8px);
+            transition: all 0.2s ease;
+        }
+        .btn-hsr-dark:hover {
+            background: rgba(30, 35, 50, 0.95);
+            border-color: #f2c968;
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(242, 201, 104, 0.4);
+        }
+
+        /* Animations */
+        .fade-enter {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.97); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .card-pop {
+            animation: cardPopAnim 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes cardPopAnim {
+            0% { opacity: 0; transform: scale(0.8) translateY(30px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+    </style>
+</head>
+<body class="p-2 sm:p-4">
+
+    <!-- Background Image Container -->
+    <div class="fixed inset-0 z-0">
+
+        <!-- LAYER 1: BANNER BACKGROUND IMAGE -->
+        <div class="absolute inset-0 z-0">
+            <img id="bgImage" src="pic/SARAHDRIPMARKET.jpg" width="4000" height="2250" onerror="this.onerror=null; this.src='https://placehold.co/1280x720/1a0b2e/f2c968?text=SARAH+-+HONKAI+STAR+RAIL';" alt="Background Banner" class="w-full h-full object-cover object-center">
+            <!-- Shading overlay -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/60 pointer-events-none"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/30 pointer-events-none"></div>
+            </div>
+
+            <!-- Right: Currencies & Star Rail Pass -->
+            <div class="flex items-center gap-2 sm:gap-4">
+                <div class="bg-black/70 border border-purple-500/40 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full backdrop-blur-md flex items-center gap-2 shadow-md">
+                    <i class="fa-solid fa-gem text-cyan-300 text-xs sm:text-sm"></i>
+                    <span id="jadeVal" class="font-orbitron font-bold text-xs sm:text-sm text-white">16,000</span>
+                </div>
+                <div class="bg-black/70 border border-amber-500/40 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full backdrop-blur-md flex items-center gap-2 shadow-md">
+                    <i class="fa-solid fa-ticket text-amber-400 text-xs sm:text-sm"></i>
+                    <span id="passVal" class="font-orbitron font-bold text-xs sm:text-sm text-amber-200">100</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- LAYER 3: BANNER INFO (MIDDLE LEFT) -->
+        <div class="relative z-10 px-4 sm:px-8 mt-auto mb-2 sm:mb-4 max-w-lg">
+            <div class="bg-black/40 backdrop-blur-sm p-3 sm:p-5 rounded-2xl border-l-4 border-amber-400">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="bg-purple-900/90 border border-purple-400 text-purple-200 text-[10px] sm:text-xs px-2 py-0.5 rounded font-bold uppercase tracking-wider">Săn Bắn / The Hunt</span>
+                </div>
+                <h1 class="font-orbitron text-2xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-amber-200 to-amber-500 tracking-wider">
+                    SigurdxKQ
+                </h1>
+                <div class="flex items-center gap-1 text-amber-400 text-xs sm:text-base mt-1">
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- LAYER 4: BOTTOM WARP BUTTONS -->
+        <footer class="relative z-20 w-full p-4 sm:p-6 flex justify-between items-end">
+            <!-- Pity counter -->
+            <div class="text-xs sm:text-sm text-gray-300 bg-black/70 border border-white/10 px-3 py-1.5 rounded-lg backdrop-blur-md">
+                Bảo đảm 5★ tiếp theo: <strong id="pityVal" class="text-amber-400 font-bold">89</strong>/90
+            </div>
+
+            <!-- Action Buttons (1x and 10x) -->
+            <div class="flex items-center gap-3 sm:gap-4">
+                <button onclick="triggerWarp(1)" class="btn-hsr-gold px-5 py-2.5 sm:px-8 sm:py-3 rounded-full font-orbitron font-black text-xs sm:text-sm flex items-center gap-2 cursor-pointer">
+                    <span>NHẢY VỌT 1 LẦN</span>
+                    <span class="bg-black/20 px-2 py-0.5 rounded-full text-[10px] sm:text-xs">x1</span>
+                </button>
+            </div>
+        </footer>
+
+        <!-- LAYER 5: VIDEO OVERLAY PLAYER -->
+        <div id="videoLayer" class="absolute inset-0 z-30 bg-black hidden flex items-center justify-center">
+            <video id="gachaVid" class="w-full h-full object-cover" playsinline preload="auto">
+                <source id="vidSrc" src="vid/Gacha.mp4" type="video/mp4">
+                <source src="Gacha.mp4" type="video/mp4">
+                Trình duyệt của bạn không hỗ trợ thẻ video.
+            </video>
+
+            <!-- Video Top Controls -->
+            <div class="absolute top-4 right-4 z-40 flex items-center gap-3">
+                <button onclick="toggleAudio()" id="btnAudio" class="bg-black/70 border border-amber-400/40 hover:border-amber-400 text-amber-200 p-2.5 rounded-full text-sm backdrop-blur-md transition cursor-pointer">
+                    <i id="audioIcon" class="fa-solid fa-volume-high"></i>
+                </button>
+                <button onclick="finishVideo()" class="bg-black/70 border border-amber-400/40 hover:border-amber-400 text-amber-200 px-5 py-2 rounded-full font-orbitron font-bold text-xs sm:text-sm backdrop-blur-md flex items-center gap-2 transition cursor-pointer">
+                    <span>BỎ QUA</span>
+                    <i class="fa-solid fa-forward"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- LAYER 6: 5-STAR CHARACTER RESULT DISPLAY -->
+        <div id="resultLayer" class="absolute inset-0 z-40 bg-slate-950/95 hidden flex flex-col justify-between p-4 sm:p-6 backdrop-blur-xl fade-enter">
+            <!-- Background Artwork Blur -->
+            <div class="absolute inset-0 pointer-events-none opacity-25">
+                <img id="resultBg" src="pic/2.png" onerror="this.onerror=null; this.src='https://placehold.co/1280x720/1a0b2e/f2c968?text=SARAH';" class="w-full h-full object-cover filter blur-lg">
+            </div>
+
+            <!-- Result Top Header -->
+            <div class="relative z-10 flex justify-between items-center">
+                <span class="font-orbitron font-bold text-xs text-amber-400 bg-black/80 px-4 py-1.5 rounded-full border border-amber-500/40">
+                    KẾT QUẢ NHẢY VỌT
+                </span>
+                <span class="font-orbitron font-bold text-xs text-amber-300 bg-black/80 px-4 py-1.5 rounded-full border border-amber-500/40">
+                    5★ BẢO ĐẢM
+                </span>
+            </div>
+
+            <!-- Result Content Showcase -->
+            <div class="relative z-10 flex-1 flex flex-row items-center justify-center gap-6 my-auto max-h-[75%]">
+                <!-- Character Artwork Card -->
+                <div class="h-full flex items-center justify-center max-w-md card-pop">
+                    <img id="resultCardImg" src="pic/3.png" onerror="this.onerror=null; this.src='https://placehold.co/1280x720/1a0b2e/f2c968?text=SARAH';" class="max-h-full max-w-full object-contain rounded-xl border-2 border-amber-400/60 shadow-[0_0_35px_rgba(242,201,104,0.5)]">
+                </div>
+
+                <!-- Info panel -->
+                <div class="w-72 sm:w-80 bg-black/80 border border-amber-400/50 rounded-2xl p-4 sm:p-6 backdrop-blur-md shadow-2xl flex flex-col justify-between gap-3 card-pop">
+                    <div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-purple-300 font-bold uppercase">Nhân vật Mới</span>
+                            <span class="bg-amber-400 text-black text-[10px] font-black px-2 py-0.5 rounded font-orbitron">5 STAR</span>
+                        </div>
+                        <h2 class="font-orbitron text-2xl sm:text-3xl font-black text-white mt-1">Sigurd&Phan K.Q.</h2>
+                        <div class="flex items-center gap-1 text-amber-400 text-sm mt-1">
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-amber-400/20 pt-2 space-y-1 text-xs">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Vận Mệnh:</span>
+                            <span class="text-amber-200 font-bold">The Hunt</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Thuộc Tính:</span>
+                            <span class="text-purple-300 font-bold">Lighting x Fire</span>
+                        </div>
+                    </div>
+<a href="https://drive.google.com/drive/folders/15_Le3tYa2q8atROL1E831rgSP2-LhUsU?usp=sharing" target="_blank">
+
+                    <button onclick="closeResult()" class="btn-hsr-gold w-full py-2.5 rounded-xl font-orbitron font-bold text-xs sm:text-sm mt-2 cursor-pointer">
+                        VÀO LINK
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bottom Close Prompt -->
+            <div class="relative z-10 text-center">
+                <button onclick="closeResult()" class="text-xs text-gray-400 hover:text-white transition font-orbitron">
+                    [ Nhấn vào đây hoặc bấm XÁC NHẬN để đóng ]
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // State variables
+        let state = {
+            jades: 16000,
+            passes: 100,
+            pity: 89
+        };
+
+        // DOM elements
+        const bgImage = document.getElementById('bgImage');
+        const gachaVid = document.getElementById('gachaVid');
+        const vidSrc = document.getElementById('vidSrc');
+        const videoLayer = document.getElementById('videoLayer');
+        const resultLayer = document.getElementById('resultLayer');
+        const resultCardImg = document.getElementById('resultCardImg');
+        const resultBg = document.getElementById('resultBg');
+
+        // Change Background Image handler
+        function changeBackground(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const url = URL.createObjectURL(file);
+            bgImage.src = url;
+            resultCardImg.src = url;
+            resultBg.src = url;
+        }
+
+        // Change Gacha Video handler
+        function changeVideo(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const url = URL.createObjectURL(file);
+            vidSrc.src = url;
+            gachaVid.load();
+            alert("Đã cập nhật video Gacha thành công! Nhấn 'NHẢY VỌT' để xem.");
+        }
+
+        // Trigger Warp Action
+        function triggerWarp(count) {
+            const cost = count;
+            if (state.passes >= cost) {
+                state.passes -= cost;
+            } else if (state.jades >= cost * 160) {
+                state.jades -= cost * 160;
+            } else {
+                alert("Không đủ Vé Nhảy Vọt hoặc Ngọc Ánh Sao!");
+                return;
+            }
+
+            state.pity = 0;
+            updateUI();
+
+            // Open Video Layer
+            videoLayer.classList.remove('hidden');
+            gachaVid.currentTime = 0;
+
+            const playPromise = gachaVid.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(err => {
+                    console.warn("Autoplay blocked or file not found. Showing result screen directly.", err);
+                    finishVideo();
+                });
+            }
+        }
+
+        // Toggle Audio
+        function toggleAudio() {
+            gachaVid.muted = !gachaVid.muted;
+            const icon = document.getElementById('audioIcon');
+            icon.className = gachaVid.muted ? "fa-solid fa-volume-xmark text-red-400" : "fa-solid fa-volume-high text-amber-200";
+        }
+
+        // Video ended listener
+        gachaVid.onended = function() {
+            finishVideo();
+        };
+
+        // Complete video and present character pull result
+        function finishVideo() {
+            gachaVid.pause();
+            videoLayer.classList.add('hidden');
+            resultLayer.classList.remove('hidden');
+        }
+
+        // Close Result Screen
+        function closeResult() {
+            resultLayer.classList.add('hidden');
+        }
+
+        // Update UI counters
+        function updateUI() {
+            document.getElementById('jadeVal').innerText = state.jades.toLocaleString();
+            document.getElementById('passVal').innerText = state.passes.toLocaleString();
+            document.getElementById('pityVal').innerText = state.pity;
+        }
+    </script>
+</body>
+</html>
